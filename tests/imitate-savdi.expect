@@ -1,0 +1,65 @@
+#!/usr/bin/expect -f
+#
+# Usage: socat unix-listen:savdid.sock,fork exec:"expect ./imitate-savdi.expect"
+#    or: socat tcp-listen:4010,reuseaddr,fork exec:"expect ./imitate-savdi.expect"
+#
+# To force error responses to any request:
+#    socat tcp-listen:4010,reuseaddr,fork exec:"expect ./imitate-savdi.expect error"
+# To force infection responses to any request:
+#    socat tcp-listen:4010,reuseaddr,fork exec:"expect ./imitate-savdi.expect infected"
+#
+
+send "OK SSSP/1.0\r\n"
+
+set opnum 0
+set requestid "1234ABCD"
+
+expect {
+    eof {
+        send_user "got eof"
+        exit
+    }
+    timeout {
+        send_user "timed out"
+        exit
+    }
+
+    "BYE" {
+        send "BYE\r"
+        exit
+    }
+    -re "^SSSP/1\.0" {
+        send "ACC $requestid/$opnum\r\n"
+        incr opnum
+        exp_continue
+    }
+
+    -re "SCAN(FILE|DIR|DIRR) (.+)\r" {
+        set filename $expect_out(2,string)
+        set forcemode [lindex $::argv 0]
+
+        # Name a scan file with the string 'eicar' to force a virus response,
+        # or pass 'infected' as the first command line argument.
+        if { $forcemode eq "infected" || [string first eicar $filename] >= 0 } {
+            send "ACC $requestid/$opnum\r\n"
+            send "VIRUS EICAR-AV-Test $filename\r\n"
+            send "OK 0203 $filename\r\n"
+            send "DONE OK 0203 Virus found during virus scan\r\n"
+            send "\r\n"
+        # Name a scan file with the string 'error' to force an error response,
+        # or pass 'error' as the first command line argument.
+        } elseif { $forcemode eq "error" || [string first error $filename] >= 0 } {
+            send "ACC $requestid/$opnum\r\n"
+            send "FAIL 060F $filename\r\n"
+            send "DONE FAIL 060F Scan terminated due to timeout\r\n"
+            send "\r\n"
+        # All other forms return success.
+        } else {
+            send "ACC $requestid/$opnum\r\n"
+            send "DONE OK 0000 The function call succeeded\r\n"
+            send "\r\n"
+        }
+        incr opnum
+        exp_continue
+    }
+}
