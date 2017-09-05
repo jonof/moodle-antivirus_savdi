@@ -84,8 +84,11 @@ class scanner extends \core\antivirus\scanner {
      * @return int Scanning result constant.
      */
     public function scan_file($file, $filename) {
-        $onerrorreturn = $this->get_config('ondaemonerror') === 'donothing' ?
-            self::SCAN_RESULT_OK : self::SCAN_RESULT_ERROR;
+        if ($this->get_config('ondaemonerror') === 'donothing') {
+            $onerrorreturn = self::SCAN_RESULT_OK;
+        } else {
+            $onerrorreturn = self::SCAN_RESULT_ERROR;
+        }
 
         $origmode = fileperms($file);
         try {

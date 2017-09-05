@@ -134,7 +134,7 @@ class client {
         while (true) {
             $msg = $this->getmessage();
             if ($msg === null) {
-                break;  // EOF
+                break;  // EOF.
             } else if ($msg === "") {
                 if ($expectnewline) {
                     break;  // Newline after a 'DONE'.
