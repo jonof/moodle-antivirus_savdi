@@ -34,21 +34,56 @@ use moodle_exception;
  *
  * See https://www.sophos.com/en-us/medialibrary/PDFs/documentation/savi_sssp_13_meng.pdf
  * for the specification.
+ *
+ * @copyright  2017 The University of Southern Queensland
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class client {
+    /**
+     * The TCP/Unix socket.
+     * @var resource
+     */
     private $socket;
 
+    /**
+     * Whether to emit the SAVDI conversation as debug output.
+     * @var boolean
+     */
     public $debugprotocol = false;
 
+    /**
+     * Discovered viruses in the most recent scan.
+     * @var array filename => virus name
+     */
     private $viruses = [];
+
+    /**
+     * The most recent scanner daemon error message from the most recent scan.
+     * @var string
+     */
     private $errormsg;
 
+    /**
+     * A good scan result.
+     * @var integer
+     */
     const RESULT_OK = 0;
+
+    /**
+     * A virus was found result.
+     * @var integer
+     */
     const RESULT_VIRUS = 1;
+
+    /**
+     * A scan failure result.
+     * @var integer
+     */
     const RESULT_ERROR = 2;
 
     /**
      * Establish a connection to the SAVDI daemon or die trying.
+     *
      * @param string $type 'unix' or 'tcp'
      * @param string $host path to unix socket, or tcp host:port
      * @return void
@@ -78,6 +113,8 @@ class client {
 
     /**
      * Disconnect from the SAVDI daemon in a clean manner.
+     *
+     * @return void
      */
     public function close() {
         if (!$this->socket) {
@@ -96,6 +133,7 @@ class client {
 
     /**
      * Scan a file.
+     *
      * @param string $filename
      * @return integer RESULT_* codes
      */
@@ -105,6 +143,7 @@ class client {
 
     /**
      * Scan a directory.
+     *
      * @param string $dirname
      * @param boolean $recurse
      * @return integer RESULT_* codes
@@ -120,6 +159,7 @@ class client {
 
     /**
      * Scan files and directories.
+     *
      * @param string $cmd SCANFILE, SCANDIR, SCANDIRR
      * @param string $path
      * @return integer RESULT_* codes
@@ -189,6 +229,7 @@ class client {
 
     /**
      * Read a message from the server.
+     *
      * @return string|null message string, or null on error or eof
      */
     private function getmessage() {
@@ -209,6 +250,7 @@ class client {
 
     /**
      * Write a message to the server.
+     *
      * @param string $msg
      * @return void
      */
@@ -222,7 +264,8 @@ class client {
 
     /**
      * Return the list of discovered viruses from the last scan.
-     * @return array(filename => virusname)
+     *
+     * @return array filename => virus name
      */
     public function get_scan_viruses() {
         return $this->viruses;
@@ -230,6 +273,7 @@ class client {
 
     /**
      * Return the scanner response from the last scan.
+     *
      * @return string
      */
     public function get_scan_message() {

@@ -37,6 +37,10 @@ use moodle_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class scanner extends \core\antivirus\scanner {
+    /**
+     * The protocol client instance.
+     * @var antivirus_savdi\client
+     */
     protected $client;
 
     /**
@@ -63,6 +67,7 @@ class scanner extends \core\antivirus\scanner {
 
     /**
      * Fetch a connected client.
+     *
      * @return client
      */
     protected function get_client() {
