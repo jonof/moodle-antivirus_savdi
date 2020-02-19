@@ -38,5 +38,6 @@ $string['errorprotocol'] = 'SAVDI protocol error: {$a}';
 $string['ondaemonerror'] = 'On scanner daemon error';
 $string['ondaemonerrordescr'] = 'Action to assume when a connection or scanner error is encountered.';
 $string['pluginname'] = 'Sophos SAVDI antivirus';
+$string['privacy:metadata'] = 'The Sophos SAVDI antivirus plugin does not store any personal data.';
 $string['warngeneral'] = 'SAVDI scanner said: {$a}';
 $string['warnprotocol'] = 'SAVDI protocol warning: {$a}';
