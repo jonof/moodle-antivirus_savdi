@@ -1,0 +1,11 @@
+<OK SSSP/1.0
+>SSSP/1.0
+<ACC 1/1
+>QUERY SERVER
+<ACC 1/2
+<version: Totally Accurate SAVDI Simulator
+<
+>SCANFILE %2Fpath
+<REJ 5
+>BYE
+<BYE

@@ -9,6 +9,9 @@
 #    socat tcp-listen:4010,reuseaddr,fork exec:"expect ./imitate-savdi.expect infected"
 #
 
+fconfigure stdin -buffering none -encoding binary
+fconfigure stdout -buffering none -encoding binary
+
 send "OK SSSP/1.0\r\n"
 
 set opnum 0
@@ -16,20 +19,39 @@ set requestid "1234ABCD"
 
 expect {
     eof {
-        send_user "got eof"
+        send_user "got eof\n"
         exit
     }
     timeout {
-        send_user "timed out"
+        send_user "timed out\n"
         exit
     }
 
     "BYE" {
-        send "BYE\r"
+        send "BYE\r\n"
         exit
     }
     -re "^SSSP/1\.0" {
         send "ACC $requestid/$opnum\r\n"
+        incr opnum
+        exp_continue
+    }
+
+    -re "QUERY SERVER\r" {
+        send "ACC $requestid/$opnum\r\n"
+        send "version: SAV Dynamic Interface 2.2.0\r\n"
+        send "method: QUERY SERVER\r\n"
+        send "method: QUERY SAVI\r\n"
+        send "method: QUERY ENGINE\r\n"
+        send "method: OPTIONS\r\n"
+        send "method: SCANDATA\r\n"
+        send "method: SCANFILE\r\n"
+        send "method: SCANDIR\r\n"
+        send "method: SCANDIRR\r\n"
+        send "maxscandata: 500000\r\n"
+        send "maxmemorysize: 250000\r\n"
+        send "maxclassificationsize: 4096\r\n"
+        send "\r\n"
         incr opnum
         exp_continue
     }
@@ -51,6 +73,34 @@ expect {
         } elseif { $forcemode eq "error" || [string first error $filename] >= 0 } {
             send "ACC $requestid/$opnum\r\n"
             send "FAIL 060F $filename\r\n"
+            send "DONE FAIL 060F Scan terminated due to timeout\r\n"
+            send "\r\n"
+        # All other forms return success.
+        } else {
+            send "ACC $requestid/$opnum\r\n"
+            send "DONE OK 0000 The function call succeeded\r\n"
+            send "\r\n"
+        }
+        incr opnum
+        exp_continue
+    }
+
+    -re "SCANDATA (\\d+)\r" {
+        set numbytes $expect_out(1,string)
+        set forcemode [lindex $::argv 0]
+        read stdin $numbytes
+
+        # Pass 'infected' as the first command line argument to force a virus response.
+        if { $forcemode eq "infected" } {
+            send "ACC $requestid/$opnum\r\n"
+            send "VIRUS EICAR-AV-Test \r\n"
+            send "OK 0203 \r\n"
+            send "DONE OK 0203 Virus found during virus scan\r\n"
+            send "\r\n"
+        # Pass 'error' as the first command line argument to force an error response.
+        } elseif { $forcemode eq "error" } {
+            send "ACC $requestid/$opnum\r\n"
+            send "FAIL 060F \r\n"
             send "DONE FAIL 060F Scan terminated due to timeout\r\n"
             send "\r\n"
         # All other forms return success.

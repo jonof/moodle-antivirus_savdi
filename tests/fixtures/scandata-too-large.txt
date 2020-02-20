@@ -1,0 +1,14 @@
+<OK SSSP/1.0
+>SSSP/1.0
+<ACC 1/1
+>QUERY SERVER
+<ACC 1/2
+<version: Totally Accurate SAVDI Simulator
+<method: SCANDATA
+<maxscandata: 1
+<
+>SCANDATA 4
+&4
+<REJ 4
+>BYE
+<BYE

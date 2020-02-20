@@ -18,7 +18,7 @@
  * Sophos SAVDI admin settings.
  *
  * @package    antivirus_savdi
- * @copyright  2017 The University of Southern Queensland
+ * @copyright  2020 The University of Southern Queensland
  * @author     Jonathon Fowler <fowlerj@usq.edu.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -40,6 +40,14 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('antivirus_savdi/connunix',
             new lang_string('connunix', 'antivirus_savdi'),
             null, '/var/run/savdi.sock', PARAM_RAW_TRIMMED));
+    $settings->add(new admin_setting_configcheckbox('antivirus_savdi/scannerisremote',
+            new lang_string('scannerisremote', 'antivirus_savdi'),
+            new lang_string('scannerisremotedescr', 'antivirus_savdi'),
+            0));
+    $settings->add(new admin_setting_configcheckbox('antivirus_savdi/chmodscanfile',
+            new lang_string('chmodscanfile', 'antivirus_savdi'),
+            new lang_string('chmodscanfiledescr', 'antivirus_savdi'),
+            1));
 
     $options = array(
         'donothing' => new lang_string('daemonerrordonothing', 'antivirus_savdi'),

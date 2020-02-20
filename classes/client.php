@@ -18,7 +18,7 @@
  * Sophos SAVDI antivirus protocol client.
  *
  * @package    antivirus_savdi
- * @copyright  2017 The University of Southern Queensland
+ * @copyright  2020 The University of Southern Queensland
  * @author     Jonathon Fowler <fowlerj@usq.edu.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,7 +35,7 @@ use moodle_exception;
  * See https://www.sophos.com/en-us/medialibrary/PDFs/documentation/savi_sssp_13_meng.pdf
  * for the specification.
  *
- * @copyright  2017 The University of Southern Queensland
+ * @copyright  2020 The University of Southern Queensland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class client {
@@ -43,7 +43,7 @@ class client {
      * The TCP/Unix socket.
      * @var resource
      */
-    private $socket;
+    protected $socket;
 
     /**
      * Whether to emit the SAVDI conversation as debug output.
@@ -58,10 +58,16 @@ class client {
     private $viruses = [];
 
     /**
-     * The most recent scanner daemon error message from the most recent scan.
+     * The most recent scanner daemon result message from the most recent scan.
      * @var string
      */
-    private $errormsg;
+    private $resultmsg;
+
+    /**
+     * The most recent scanner daemon result code from the most recent scan.
+     * @var string
+     */
+    private $resultcode;
 
     /**
      * A good scan result.
@@ -82,6 +88,92 @@ class client {
     const RESULT_ERROR = 2;
 
     /**
+     * A request not supported failure result.
+     * @var integer
+     */
+    const RESULT_ERROR_NOTSUPPORTED = 3;
+
+    /**
+     * A data too large failure result.
+     * @var integer
+     */
+    const RESULT_ERROR_TOOLARGE = 4;
+
+
+    /**
+     * Whether the server supports the SCANFILE request.
+     * @var boolean
+     */
+    private $hasscanfile = false;
+
+    /**
+     * Whether the server supports the SCANDIR request.
+     * @var boolean
+     */
+    private $hasscandir  = false;
+
+    /**
+     * Whether the server supports the SCANDIRR request.
+     * @var boolean
+     */
+    private $hasscandirr = false;
+
+    /**
+     * Whether the server supports the SCANDATA request.
+     * @var boolean
+     */
+    private $hasscandata = false;
+
+    /**
+     * The maximum size of data accepted by SCANDATA. 0 means unlimited.
+     * @var integer
+     */
+    private $maxscandata = 0;
+
+
+    /**
+     * The function call succeeded.
+     * @var string
+     */
+    const SAVI_OK = '0000';
+
+    /**
+     * A virus was found during a virus scan.
+     * @var string
+     */
+    const SAVI_ERROR_VIRUSPRESENT = '0203';
+
+    /**
+     * Scan terminated due to timeout.
+     * @var string
+     */
+    const SAVI_ERROR_SCANTIMEOUT = '060F';
+
+    /**
+     * Human-readable SSSP reject codes.
+     * @var array
+     */
+    const SAVI_REJ_MESSAGES = [
+        1 => 'The request was not recognised',
+        2 => 'The SSSP version number was incorrect',
+        3 => 'There was an error in the OPTIONS list',
+        4 => 'SCANDATA was trying to send too much data',
+        5 => 'The request is not permitted',
+    ];
+
+
+    /**
+     * Determine if a result code is an error.
+     *
+     * @param integer $result
+     * @return boolean
+     */
+    public static function is_error_result($result) {
+        return $result >= self::RESULT_ERROR;
+    }
+
+
+    /**
      * Establish a connection to the SAVDI daemon or die trying.
      *
      * @param string $type 'unix' or 'tcp'
@@ -90,25 +182,39 @@ class client {
      * @throws moodle_exception
      */
     public function connect($type, $host) {
-        $this->close();
+        $this->disconnect();
 
-        $this->socket = stream_socket_client($type . '://' . $host, $errno, $errstr, 5);
-        if (!$this->socket) {
+        if (!$this->open_socket($type . '://' . $host, $errno, $errstr)) {
             throw new moodle_exception('errorcantopen'.$type.'socket', 'antivirus_savdi', '', "$errstr ($errno)");
         }
 
         // Expect the server to greet us.
         if ($this->getmessage() !== "OK SSSP/1.0") {
-            fclose($this->socket);
-            $this->socket = null;
+            $this->close_socket();
             throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'bad server greeting');
         }
         $this->sendmessage("SSSP/1.0");
         if (strpos($this->getmessage(), "ACC ") !== 0) {
-            fclose($this->socket);
-            $this->socket = null;
+            $this->close_socket();
             throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'bad protocol version handshake');
         }
+
+        if (!$this->query_server_capabilities()) {
+            throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'problem querying capabilities');
+        }
+    }
+
+    /**
+     * Open the communication socket.
+     *
+     * @param string $sockpath
+     * @param integer $errno receives an error code
+     * @param string $errstr receives an error description
+     * @return resource
+     */
+    protected function open_socket($sockpath, &$errno, &$errstr) {
+        $this->socket = stream_socket_client($sockpath, $errno, $errstr, 5);
+        return $this->socket !== false;
     }
 
     /**
@@ -116,8 +222,8 @@ class client {
      *
      * @return void
      */
-    public function close() {
-        if (!$this->socket) {
+    public function disconnect() {
+        if (!$this->is_connected()) {
             return;
         }
 
@@ -127,50 +233,132 @@ class client {
             debugging(get_string('warnprotocol', 'antivirus_savdi', 'did not receive expected signoff'), DEBUG_DEVELOPER);
         }
 
+        $this->close_socket();
+    }
+
+    /**
+     * Closes the communication socket.
+     *
+     * @return void
+     */
+    protected function close_socket() {
         fclose($this->socket);
         $this->socket = null;
     }
 
     /**
-     * Scan a file.
+     * Check if connected.
+     *
+     * @return boolean
+     */
+    public function is_connected() {
+        return $this->socket !== null;
+    }
+
+    /**
+     * Scan a file on the scanner daemon's filesystem.
      *
      * @param string $filename
      * @return integer RESULT_* codes
      */
     public function scanfile($filename) {
-        return $this->scan('SCANFILE', $filename);
+        return $this->scanlocal('SCANFILE', $filename);
     }
 
     /**
-     * Scan a directory.
+     * Scan a directory on the scanner daemon's filesystem.
      *
      * @param string $dirname
-     * @param boolean $recurse
+     * @param boolean $recursivescan
      * @return integer RESULT_* codes
      */
-    public function scandir($dirname, $recurse = false) {
-        if ($recurse) {
-            $verb = 'SCANDIRR';
+    public function scandir($dirname, $recursivescan = false) {
+        if ($recursivescan) {
+            $requesttype = 'SCANDIRR';
         } else {
-            $verb = 'SCANDIR';
+            $requesttype = 'SCANDIR';
         }
-        return $this->scan($verb, $dirname);
+        return $this->scanlocal($requesttype, $dirname);
     }
 
     /**
-     * Scan files and directories.
+     * Scan files or directories on the scanner daemon's filesystem.
      *
-     * @param string $cmd SCANFILE, SCANDIR, SCANDIRR
+     * @param string $requesttype
      * @param string $path
      * @return integer RESULT_* codes
      */
-    private function scan($cmd, $path) {
+    private function scanlocal($requesttype, $path) {
+        if (!$this->{'has' . strtolower($requesttype)}) {
+            $this->resultmsg = get_string('errorservernotsupported', 'antivirus_savdi', $requesttype);
+            return self::RESULT_ERROR_NOTSUPPORTED;
+        }
+        $this->sendmessage($requesttype . ' ' . urlencode($path));
+        return $this->handle_scan_response();
+    }
+
+    /**
+     * Scan data.
+     *
+     * @param string $data
+     * @return integer RESULT_* codes
+     */
+    public function scandata($data) {
+        $size = strlen($data);
+        if (!$this->hasscandata) {
+            $this->resultmsg = get_string('errorservernotsupported', 'antivirus_savdi', 'SCANDATA');
+            return self::RESULT_ERROR_NOTSUPPORTED;
+        }
+        if ($this->maxscandata > 0 && $size > $this->maxscandata) {
+            $this->resultmsg = get_string('errorsenddatatoobig', 'antivirus_savdi', $this->maxscandata);
+            return self::RESULT_ERROR_TOOLARGE;
+        }
+
+        $this->sendmessage('SCANDATA ' . $size);
+        if (!$this->senddata($data, $size)) {
+            $this->resultmsg = get_string('errorsenddatashort', 'antivirus_savdi');
+            return self::RESULT_ERROR;
+        }
+        return $this->handle_scan_response();
+    }
+
+    /**
+     * Scan data from an open file handle.
+     *
+     * @param resource $fileh
+     * @return integer RESULT_* codes
+     */
+    public function scandatafileh($fileh) {
+        $stat = fstat($fileh);
+        $size = $stat['size'];
+        if (!$this->hasscandata) {
+            $this->resultmsg = get_string('errorservernotsupported', 'antivirus_savdi', 'SCANDATA');
+            return self::RESULT_ERROR_NOTSUPPORTED;
+        }
+        if ($this->maxscandata > 0 && $size > $this->maxscandata) {
+            $this->resultmsg = get_string('errorsenddatatoobig', 'antivirus_savdi', $this->maxscandata);
+            return self::RESULT_ERROR_TOOLARGE;
+        }
+
+        $this->sendmessage('SCANDATA ' . $size);
+        if (!$this->senddatastream($fileh, $size)) {
+            $this->resultmsg = get_string('errorsenddatashort', 'antivirus_savdi');
+            return self::RESULT_ERROR;
+        }
+        return $this->handle_scan_response();
+    }
+
+    /**
+     * Process the response to a scan request.
+     *
+     * @return integer RESULT_* codes
+     */
+    private function handle_scan_response() {
         $scanresult = self::RESULT_ERROR;
         $expectnewline = false;
         $this->viruses = [];
-        $this->errormsg = null;
+        $this->resultmsg = null;
 
-        $this->sendmessage("$cmd " . urlencode($path));
         while (true) {
             $msg = $this->getmessage();
             if ($msg === null) {
@@ -181,30 +369,39 @@ class client {
                 }
                 continue;
             }
+
             list($response, $extra) = explode(' ', $msg, 2);
             switch ($response) {
                 case 'ACC':     // Daemon accepted the request.
-                    continue;
+                    break;
                 case 'REJ':     // Daemon rejected the request.
-                    break 2;
+                    $this->resultcode = (int)$extra;
+                    $this->resultmsg = self::SAVI_REJ_MESSAGES[$extra];
+                    debugging(get_string('errorrejected', 'antivirus_savdi', $this->resultmsg), DEBUG_NORMAL);
+                    break 2;    // Break the while.
+
                 case 'EVENT':   // Progress reporting.
                 case 'TYPE':
                 case 'FILE':
-                    continue;
+                    break;
+
                 case 'OK':      // Outcome reporting.
                 case 'FAIL':
-                    continue;
+                    break;
+
                 case 'VIRUS':   // Virus identified.
                     list ($virus, $filename) = explode(' ', $extra, 2);
+                    $filename = urldecode($filename);
                     $this->viruses[$filename] = $virus;
                     debugging('found virus ' . $virus . ' in ' . $filename, DEBUG_NORMAL);
-                    continue;
+                    break;
+
                 case 'DONE':
                     list ($result, $code, $codemsg) = explode(' ', $extra, 3);
                     if ($result === 'OK') {
-                        if ($code === '0000') {
+                        if ($code === self::SAVI_OK) {
                             $scanresult = self::RESULT_OK;      // No virus.
-                        } else if ($code === '0203') {
+                        } else if ($code === self::SAVI_ERROR_VIRUSPRESENT) {
                             $scanresult = self::RESULT_VIRUS;   // Virus found.
                         } else {
                             debugging(get_string('warngeneral', 'antivirus_savdi', "OK - $codemsg ($code)"), DEBUG_NORMAL);
@@ -212,9 +409,11 @@ class client {
                     } else {
                         debugging(get_string('errorgeneral', 'antivirus_savdi', "FAIL - $codemsg ($code)"), DEBUG_NORMAL);
                     }
-                    $this->errormsg = "$code $codemsg";
+                    $this->resultcode = $code;
+                    $this->resultmsg = $codemsg;
                     $expectnewline = true;
-                    continue;
+                    break;
+
                 default:
                     if ($this->debugprotocol) {
                         debugging(get_string('errorprotocol', 'antivirus_savdi',
@@ -228,11 +427,63 @@ class client {
     }
 
     /**
+     * Interrogate the server for its capabilities.
+     *
+     * @return boolean true if successful
+     */
+    private function query_server_capabilities() {
+        $this->sendmessage("QUERY SERVER");
+
+        while (true) {
+            $msg = $this->getmessage();
+            if ($msg === null) {
+                break;  // EOF.
+            } else if ($msg === "") {
+                return true;
+            }
+
+            list($response, $extra) = explode(' ', $msg, 2);
+            switch ($response) {
+                case 'ACC':         // Daemon accepted the request.
+                    break;
+                case 'REJ':         // Daemon rejected the request.
+                    $this->resultcode = (int)$extra;
+                    $this->resultmsg = self::SAVI_REJ_MESSAGES[$extra];
+                    debugging(get_string('errorrejected', 'antivirus_savdi', $this->resultmsg), DEBUG_NORMAL);
+                    break 2;        // Break the while.
+
+                case 'method:':     // A supported request type.
+                    switch ($extra) {
+                        case 'SCANFILE':
+                            $this->hasscanfile = true;
+                            break;
+                        case 'SCANDIR':
+                            $this->hasscandir  = true;
+                            break;
+                        case 'SCANDIRR':
+                            $this->hasscandirr = true;
+                            break;
+                        case 'SCANDATA':
+                            $this->hasscandata = true;
+                            break;
+                    }
+                    break;
+
+                case 'maxscandata:':    // The maximum number of bytes for SCANDATA.
+                    $this->maxscandata = intval($extra);
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Read a message from the server.
      *
      * @return string|null message string, or null on error or eof
      */
-    private function getmessage() {
+    protected function getmessage() {
         $msg = fgets($this->socket);
         if ($msg === false) {
             // Error or EOF.
@@ -254,12 +505,44 @@ class client {
      * @param string $msg
      * @return void
      */
-    private function sendmessage($msg) {
+    protected function sendmessage($msg) {
         if ($this->debugprotocol) {
             debugging('SAVDI < '.$msg, DEBUG_DEVELOPER);
         }
         fwrite($this->socket, $msg . "\r\n");
         fflush($this->socket);
+    }
+
+    /**
+     * Write raw data to the server.
+     *
+     * @param string $data
+     * @param integer $bytes
+     * @return boolean true if the expected number of bytes were sent
+     */
+    protected function senddata($data, $bytes) {
+        if ($this->debugprotocol) {
+            debugging('SAVDI < (' . $bytes . ' bytes...)', DEBUG_DEVELOPER);
+        }
+        $sent = fwrite($this->socket, $data, $bytes);
+        fflush($this->socket);
+        return $sent === $bytes;
+    }
+
+    /**
+     * Write data from a resource to the server.
+     *
+     * @param resource $fileh
+     * @param integer $bytes
+     * @return boolean true if the expected number of bytes were sent
+     */
+    protected function senddatastream($fileh, $bytes) {
+        if ($this->debugprotocol) {
+            debugging('SAVDI < (' . $bytes . ' bytes from stream...)', DEBUG_DEVELOPER);
+        }
+        $sent = stream_copy_to_stream($fileh, $this->socket, $bytes, 0);
+        fflush($this->socket);
+        return $sent === $bytes;
     }
 
     /**
@@ -272,11 +555,20 @@ class client {
     }
 
     /**
+     * Return the scanner code from the last scan.
+     *
+     * @return string
+     */
+    public function get_scan_code() {
+        return $this->resultcode;
+    }
+
+    /**
      * Return the scanner response from the last scan.
      *
      * @return string
      */
     public function get_scan_message() {
-        return $this->errormsg;
+        return $this->resultmsg;
     }
 }

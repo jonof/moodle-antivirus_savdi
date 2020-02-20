@@ -1,0 +1,16 @@
+<OK SSSP/1.0
+>SSSP/1.0
+<ACC 1/1
+>QUERY SERVER
+<ACC 1/2
+<version: Totally Accurate SAVDI Simulator
+<method: SCANFILE
+<
+>SCANFILE %2Fpath
+<ACC 1/3
+<VIRUS EICAR-AV-Test /path
+<OK 0203 /path
+<DONE OK 0203 Virus found during virus scan
+<
+>BYE
+<BYE

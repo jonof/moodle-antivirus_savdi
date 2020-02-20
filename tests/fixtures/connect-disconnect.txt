@@ -1,0 +1,20 @@
+<OK SSSP/1.0
+>SSSP/1.0
+<ACC 1/1
+>QUERY SERVER
+<ACC 1/2
+<version: Totally Accurate SAVDI Simulator
+<method: QUERY SERVER
+<method: QUERY SAVI
+<method: QUERY ENGINE
+<method: OPTIONS
+<method: SCANDATA
+<method: SCANFILE
+<method: SCANDIR
+<method: SCANDIRR
+<maxscandata: 500000
+<maxmemorysize: 250000
+<maxclassificationsize: 4096
+<
+>BYE
+<BYE

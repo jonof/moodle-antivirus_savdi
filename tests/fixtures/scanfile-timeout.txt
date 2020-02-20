@@ -1,0 +1,15 @@
+<OK SSSP/1.0
+>SSSP/1.0
+<ACC 1/1
+>QUERY SERVER
+<ACC 1/2
+<version: Totally Accurate SAVDI Simulator
+<method: SCANFILE
+<
+>SCANFILE %2Fpath
+<ACC 1/3
+<FAIL 060F /path
+<DONE FAIL 060F Scan terminated due to timeout
+<
+>BYE
+<BYE

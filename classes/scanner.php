@@ -18,7 +18,7 @@
  * Sophos SAVDI antivirus integration.
  *
  * @package    antivirus_savdi
- * @copyright  2017 The University of Southern Queensland
+ * @copyright  2020 The University of Southern Queensland
  * @author     Jonathon Fowler <fowlerj@usq.edu.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -32,7 +32,7 @@ use moodle_exception;
 /**
  * Class implemeting Sophos SAVDI antivirus.
  *
- * @copyright  2016 The University of Southern Queensland
+ * @copyright  2020 The University of Southern Queensland
  * @author     Jonathon Fowler <fowlerj@usq.edu.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -48,7 +48,7 @@ class scanner extends \core\antivirus\scanner {
      */
     public function __destruct() {
         if ($this->client) {
-            $this->client->close();
+            $this->client->disconnect();
         }
     }
 
@@ -95,21 +95,89 @@ class scanner extends \core\antivirus\scanner {
             $onerrorreturn = self::SCAN_RESULT_ERROR;
         }
 
-        $origmode = fileperms($file);
-        try {
-            $client = $this->get_client();
-            chmod($file, 0644);
-            $scanresult = $client->scanfile($file);
-        } catch (moodle_exception $e) {
-            $this->message_admins($e->getMessage());
-            return $onerrorreturn;
-        } finally {
-            chmod($file, $origmode);
+        if ($this->get_config('scannerisremote')) {
+            $usescandata = true;
+        } else {
+            $usescandata = false;
+            $chmodscanfile = $this->get_config('chmodscanfile');
+
+            $origmode = fileperms($file);
+            try {
+                if ($chmodscanfile) {
+                    chmod($file, 0644);
+                }
+                $client = $this->get_client();
+                $scanresult = $client->scanfile($file);
+            } catch (moodle_exception $e) {
+                $this->message_admins($e->getMessage());
+                return $onerrorreturn;
+            } finally {
+                if ($chmodscanfile) {
+                    chmod($file, $origmode);
+                }
+            }
+
+            if ($scanresult === client::RESULT_ERROR_NOTSUPPORTED) {
+                // Try again by sending data across the wire.
+                $usescandata = true;
+                $scanresult = null;
+            }
+        }
+
+        if ($usescandata) {
+            // Open the file and pipe it to the daemon as data.
+            $fileh = @fopen($file, 'rb');
+            if (!$fileh) {
+                $this->message_admins(get_string('errorfileopen', 'antivirus_savdi', $file));
+                return $onerrorreturn;
+            }
+            try {
+                $client = $this->get_client();
+                $scanresult = $client->scandatafileh($fileh);
+            } finally {
+                fclose($fileh);
+            }
         }
 
         if ($scanresult === client::RESULT_VIRUS) {
             return self::SCAN_RESULT_FOUND;
-        } else if ($scanresult === client::RESULT_ERROR) {
+        } else if (client::is_error_result($scanresult)) {
+            // An error of some kind. Proceed according to configuration.
+            $this->message_admins($client->get_scan_message());
+            return $onerrorreturn;
+        }
+
+        return self::SCAN_RESULT_OK;
+    }
+
+    /**
+     * Scan data, throws exception in case of infected file
+     *
+     * @param string $data The data to be scanned.
+     * @return int Scanning result constants.
+     */
+    public function scan_data($data) {
+        if ($this->get_config('ondaemonerror') === 'donothing') {
+            $onerrorreturn = self::SCAN_RESULT_OK;
+        } else {
+            $onerrorreturn = self::SCAN_RESULT_ERROR;
+        }
+
+        try {
+            $client = $this->get_client();
+            $scanresult = $client->scandata($data);
+        } catch (moodle_exception $e) {
+            $this->message_admins($e->getMessage());
+            return $onerrorreturn;
+        }
+
+        if ($scanresult === client::RESULT_ERROR_TOOLARGE ||
+            $scanresult === client::RESULT_ERROR_NOTSUPPORTED) {
+            // Punt the request to the default implementation which spools to disk.
+            return parent::scan_data($data);
+        } else if ($scanresult === client::RESULT_VIRUS) {
+            return self::SCAN_RESULT_FOUND;
+        } else if (client::is_error_result($scanresult)) {
             // An error of some kind. Proceed according to configuration.
             $this->message_admins($client->get_scan_message());
             return $onerrorreturn;
