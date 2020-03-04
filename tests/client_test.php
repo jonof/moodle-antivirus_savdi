@@ -23,6 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace antivirus_savdi\tests;
 defined('MOODLE_INTERNAL') || die();
 
 use antivirus_savdi\test_client;
@@ -34,7 +35,7 @@ use antivirus_savdi\test_client;
  * @copyright  2020 The University of Southern Queensland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class antivirus_savdi_client_testcase extends advanced_testcase {
+class antivirus_savdi_client_testcase extends \advanced_testcase {
     public function test_connect_disconnect() {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/connect-disconnect.txt');
