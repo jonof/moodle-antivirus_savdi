@@ -101,7 +101,9 @@ class scanner extends \core\antivirus\scanner {
             $usescandata = false;
             $chmodscanfile = $this->get_config('chmodscanfile');
 
-            $origmode = fileperms($file);
+            if ($chmodscanfile) {
+                $origmode = fileperms($file);
+            }
             try {
                 if ($chmodscanfile) {
                     chmod($file, 0644);

@@ -41,7 +41,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2020 The University of Southern Queensland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class test_client extends client {
+class test_client extends \antivirus_savdi\client {
     /**
      * Handle of the open protocol conversation script.
      * @var resource
