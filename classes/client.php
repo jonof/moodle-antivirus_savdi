@@ -130,6 +130,12 @@ class client {
      */
     private $maxscandata = 0;
 
+    /**
+     * The scanner version string.
+     * @var string
+     */
+    private $version;
+
 
     /**
      * The function call succeeded.
@@ -452,6 +458,10 @@ class client {
                     debugging(get_string('errorrejected', 'antivirus_savdi', $this->resultmsg), DEBUG_NORMAL);
                     break 2;        // Break the while.
 
+                case 'version:':    // The scanner's version string.
+                    $this->version = $extra;
+                    break;
+
                 case 'method:':     // A supported request type.
                     switch ($extra) {
                         case 'SCANFILE':
@@ -570,5 +580,21 @@ class client {
      */
     public function get_scan_message() {
         return $this->resultmsg;
+    }
+
+    /**
+     * Return the scanner daemon's queried capabilities.
+     *
+     * @return array
+     */
+    public function get_scanner_capabilities() {
+        return [
+            'version' => $this->version,
+            'hasscanfile' => $this->hasscanfile,
+            'hasscandir' => $this->hasscandir,
+            'hasscandirr' => $this->hasscandirr,
+            'hasscandata' => $this->hasscandata,
+            'maxscandata' => $this->maxscandata,
+        ];
     }
 }

@@ -56,4 +56,16 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('antivirus_savdi/ondaemonerror',
             new lang_string('ondaemonerror', 'antivirus_savdi'),
             new lang_string('ondaemonerrordescr', 'antivirus_savdi'), 'donothing', $options));
+
+    $settings->add(new admin_setting_heading('antivirus_savdi_testheading',
+            new lang_string('testclient', 'antivirus_savdi'),
+            new lang_string('testclient_info', 'antivirus_savdi',
+                (new moodle_url('/lib/antivirus/savdi/testclient.php'))->out())));
+}
+
+if ($hassiteconfig) {
+    $ADMIN->add('antivirussettings', new admin_externalpage('antivirus_savdi_testclient',
+            new lang_string('testclient', 'antivirus_savdi'),
+            new moodle_url('/lib/antivirus/savdi/testclient.php'),
+            'moodle/site:config', true));
 }
