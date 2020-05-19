@@ -23,6 +23,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['checkconnectivity'] = 'SAVDI connectivity';
+$string['checkconnectivityfalsepositive'] = 'False positive from test scan.';
+$string['checkconnectivitynoconfig'] = 'No SAVDI daemon is configured.';
+$string['checkconnectivitynomethods'] = 'Scanner communication was successful, but no scan methods are enabled.';
+$string['checkconnectivityok'] = 'Scanner test was successful.';
+$string['checkconnectivityscandataerror'] = 'SCANDATA test error: {$a}.';
+$string['checkconnectivityscanfileerror'] = 'SCANFILE test error: {$a}.';
+$string['checkconnectivitytmpfileerror'] = 'Scanner communication was successful, but a test file could not be created.';
 $string['chmodscanfile'] = 'Change scan file permissions';
 $string['chmodscanfiledescr'] = 'Enable this option to have the permissions of the file being scanned temporarily changed to world-readable. Useful when the scanner daemon is local to the web server, but the file being scanned is not readable by the scanner process. Not necessary if the scanner daemon is remote.';
 $string['clientresult0'] = 'OK';

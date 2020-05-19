@@ -70,7 +70,7 @@ class scanner extends \core\antivirus\scanner {
      *
      * @return client
      */
-    protected function get_client() {
+    public function get_client() {
         if (!$this->client) {
             $conntype = $this->get_config('conntype');
             $connhost = $this->get_config('conn' . $conntype);
