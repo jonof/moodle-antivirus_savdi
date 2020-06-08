@@ -75,9 +75,13 @@ class antivirus_savdi_scanner_testcase extends \advanced_testcase {
         $this->resetAfterTest(true);
         global $SESSION;
 
+        // Let scanner daemon errors pass normally.
+        set_config('ondaemonerror', 'donothing', 'antivirus_savdi');
+
         // Unable to tests fileperms, using dummy data + client.
         set_config('chmodscanfile', 0, 'antivirus_savdi');
         $scanner = new test_scanner();
+
         // Scan a file, and verify no exception thrown.
         // Can pass any filepath, will be ignored by the test client.
         $SESSION->savdi_client_script = 'scanfile-clean.txt';
@@ -90,23 +94,33 @@ class antivirus_savdi_scanner_testcase extends \advanced_testcase {
 
         // Now test that a daemon failure doesn't cause an error by default.
         $SESSION->savdi_client_script = 'scanfile-timeout.txt';
-        $this->assertEquals($scanner::SCAN_RESULT_OK, $scanner->scan_file('/path', '/path'));
-        $this->assertDebuggingCalled();
-
-        // Error when config is set to disallow on error.
-        set_config('ondaemonerror', 1, 'antivirus_savdi');
-        $scanner = new test_scanner();
         $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_file('/path', '/path'));
         $this->assertDebuggingCalled();
 
         // Test that not supported files error.
         $SESSION->savdi_client_script = 'scanfile-without-support.txt';
         $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_file('/path', '/path'));
+
+        // Check virus response when config is set to behave like so on error.
+        set_config('ondaemonerror', 'actlikevirus', 'antivirus_savdi');
+        $scanner = new test_scanner();
+
+        $SESSION->savdi_client_script = 'scanfile-timeout.txt';
+        $this->assertEquals($scanner::SCAN_RESULT_FOUND, $scanner->scan_file('/path', '/path'));
+        $this->assertDebuggingCalled();
+
+        // Test that not supported files error.
+        $SESSION->savdi_client_script = 'scanfile-without-support.txt';
+        $this->assertEquals($scanner::SCAN_RESULT_FOUND, $scanner->scan_file('/path', '/path'));
     }
 
     public function test_scan_data() {
         $this->resetAfterTest(true);
         global $SESSION;
+
+        // Let scanner daemon errors pass normally.
+        set_config('ondaemonerror', 'donothing', 'antivirus_savdi');
+
         $scanner = new test_scanner();
 
         // Clean.
@@ -120,28 +134,28 @@ class antivirus_savdi_scanner_testcase extends \advanced_testcase {
 
         // Test various errors with scandata return OK.
         $SESSION->savdi_client_script = 'scandata-timeout.txt';
-        $this->assertEquals($scanner::SCAN_RESULT_OK, $scanner->scan_data('data'));
+        $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_data('data'));
         $this->assertDebuggingCalled();
 
         $SESSION->savdi_client_script = 'scandata-too-large.txt';
-        $this->assertEquals($scanner::SCAN_RESULT_OK, $scanner->scan_data('data'));
+        $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_data('data'));
 
         $SESSION->savdi_client_script = 'scandata-without-support.txt';
-        $this->assertEquals($scanner::SCAN_RESULT_OK, $scanner->scan_data('data'));
+        $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_data('data'));
 
-        // Now test failures with config enabled.
-        set_config('ondaemonerror', 1, 'antivirus_savdi');
+        // Check virus response when config is set to behave like so on error.
+        set_config('ondaemonerror', 'actlikevirus', 'antivirus_savdi');
         $scanner = new test_scanner();
 
         // Test various failures with scandata return errors.
         $SESSION->savdi_client_script = 'scandata-timeout.txt';
-        $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_data('data'));
+        $this->assertEquals($scanner::SCAN_RESULT_FOUND, $scanner->scan_data('data'));
         $this->assertDebuggingCalled();
 
         $SESSION->savdi_client_script = 'scandata-too-large.txt';
-        $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_data('data'));
+        $this->assertEquals($scanner::SCAN_RESULT_FOUND, $scanner->scan_data('data'));
 
         $SESSION->savdi_client_script = 'scandata-without-support.txt';
-        $this->assertEquals($scanner::SCAN_RESULT_ERROR, $scanner->scan_data('data'));
+        $this->assertEquals($scanner::SCAN_RESULT_FOUND, $scanner->scan_data('data'));
     }
 }

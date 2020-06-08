@@ -82,7 +82,7 @@ class scanner extends \core\antivirus\scanner {
     }
 
     /**
-     * Scan file, throws exception in case of infected file.
+     * Scan file.
      *
      * @param string $file Full path to the file.
      * @param string $filename Name of the file (could be different from physical file if temp file is used).
@@ -157,7 +157,7 @@ class scanner extends \core\antivirus\scanner {
     }
 
     /**
-     * Scan data, throws exception in case of infected file
+     * Scan data.
      *
      * @param string $data The data to be scanned.
      * @return int Scanning result constants.
