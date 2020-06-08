@@ -90,9 +90,9 @@ class scanner extends \core\antivirus\scanner {
      */
     public function scan_file($file, $filename) {
         if ($this->get_config('ondaemonerror') === 'donothing') {
-            $onerrorreturn = self::SCAN_RESULT_OK;
-        } else {
             $onerrorreturn = self::SCAN_RESULT_ERROR;
+        } else {
+            $onerrorreturn = self::SCAN_RESULT_FOUND;
         }
 
         if ($this->get_config('scannerisremote')) {
@@ -112,6 +112,7 @@ class scanner extends \core\antivirus\scanner {
                 $scanresult = $client->scanfile($file);
             } catch (moodle_exception $e) {
                 $this->message_admins($e->getMessage());
+                $this->set_scanning_notice($e->getMessage());
                 return $onerrorreturn;
             } finally {
                 if ($chmodscanfile) {
@@ -131,6 +132,7 @@ class scanner extends \core\antivirus\scanner {
             $fileh = @fopen($file, 'rb');
             if (!$fileh) {
                 $this->message_admins(get_string('errorfileopen', 'antivirus_savdi', $file));
+                $this->set_scanning_notice(get_string('errorfileopen', 'antivirus_savdi', $file));
                 return $onerrorreturn;
             }
             try {
@@ -142,10 +144,12 @@ class scanner extends \core\antivirus\scanner {
         }
 
         if ($scanresult === client::RESULT_VIRUS) {
+            $this->set_scanning_notice($client->get_scan_message());
             return self::SCAN_RESULT_FOUND;
         } else if (client::is_error_result($scanresult)) {
             // An error of some kind. Proceed according to configuration.
             $this->message_admins($client->get_scan_message());
+            $this->set_scanning_notice($client->get_scan_message());
             return $onerrorreturn;
         }
 
@@ -160,9 +164,9 @@ class scanner extends \core\antivirus\scanner {
      */
     public function scan_data($data) {
         if ($this->get_config('ondaemonerror') === 'donothing') {
-            $onerrorreturn = self::SCAN_RESULT_OK;
-        } else {
             $onerrorreturn = self::SCAN_RESULT_ERROR;
+        } else {
+            $onerrorreturn = self::SCAN_RESULT_FOUND;
         }
 
         try {
@@ -170,6 +174,7 @@ class scanner extends \core\antivirus\scanner {
             $scanresult = $client->scandata($data);
         } catch (moodle_exception $e) {
             $this->message_admins($e->getMessage());
+            $this->set_scanning_notice($e->getMessage());
             return $onerrorreturn;
         }
 
@@ -178,9 +183,11 @@ class scanner extends \core\antivirus\scanner {
             // Punt the request to the default implementation which spools to disk.
             return parent::scan_data($data);
         } else if ($scanresult === client::RESULT_VIRUS) {
+            $this->set_scanning_notice($client->get_scan_message());
             return self::SCAN_RESULT_FOUND;
         } else if (client::is_error_result($scanresult)) {
             // An error of some kind. Proceed according to configuration.
+            $this->set_scanning_notice($client->get_scan_message());
             $this->message_admins($client->get_scan_message());
             return $onerrorreturn;
         }
