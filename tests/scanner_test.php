@@ -55,7 +55,7 @@ class antivirus_savdi_scanner_testcase extends \advanced_testcase {
         $scanner = new \antivirus_savdi\scanner();
         $this->assertFalse($scanner->is_configured());
 
-        // Test TCP with remote and local IP's
+        // Test TCP with remote and local IPs.
         set_config('conntcp', '123.123.123.123:4010', 'antivirus_savdi');
         $scanner = new \antivirus_savdi\scanner();
         $this->assertTrue($scanner->is_configured());
