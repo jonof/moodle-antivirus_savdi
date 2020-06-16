@@ -25,6 +25,11 @@
 
 $string['chmodscanfile'] = 'Change scan file permissions';
 $string['chmodscanfiledescr'] = 'Enable this option to have the permissions of the file being scanned temporarily changed to world-readable. Useful when the scanner daemon is local to the web server, but the file being scanned is not readable by the scanner process. Not necessary if the scanner daemon is remote.';
+$string['clientresult0'] = 'OK';
+$string['clientresult1'] = 'Virus found';
+$string['clientresult2'] = 'Error';
+$string['clientresult3'] = 'Request not supported';
+$string['clientresult4'] = 'Data too large';
 $string['conntcp'] = 'TCP/IP host:port';
 $string['conntype'] = 'Connect to SAVDI daemon by';
 $string['conntypedescr'] = 'If the SAVDI daemon is local to the web server and can read files created by the web server, ensure the daemon supports the \'SCANFILE\' request type and disable the *SAVDI daemon is remote* option.
@@ -52,12 +57,19 @@ $string['scannerisremote'] = 'SAVDI daemon is remote';
 $string['scannerisremotedescr'] = 'Enabling this option prevents direct reading of files by the SAVDI daemon, instead copying the data to be scanned to the daemon via network connection. The SAVDI daemon must support the \'SCANDATA\' request type and its \'maxscandata\' setting must be set large enough for the expected content.';
 $string['testclient'] = 'Test Sophos SAVDI connection';
 $string['testclientresult'] = 'Connection outcome';
-$string['testclientversion'] = 'Scanner version';
+$string['testclientscandataresult'] = 'SCANDATA request result';
+$string['testclientscanfileresult'] = 'SCANFILE request result';
+$string['testclientscantest'] = 'Upload a file below to test SCANFILE and SCANDATA request types.';
+$string['testclientscantestpath'] = 'Uploaded temporary file';
+$string['testclientscanuploaderrornotrecognised'] = 'PHP file upload error: {$a} is not recognised as an uploaded file.';
+$string['testclientscanuploaderror'] = 'File upload error: {$a}.';
 $string['testclienthasscanfile'] = 'Supports SCANFILE request';
 $string['testclienthasscandir'] = 'Supports SCANDIR request';
 $string['testclienthasscandirr'] = 'Supports SCANDIRR request';
 $string['testclienthasscandata'] = 'Supports SCANDATA request';
 $string['testclientmaxscandata'] = 'Maximum SCANDATA request size';
+$string['testclientuploadandscan'] = 'Upload and scan file';
+$string['testclientversion'] = 'Scanner version';
 $string['testclient_info'] = '<a href="{$a}">Check that communication with the configured SAVDI daemon works using this connection test tool</a>. To test whether SAVDI is correctly able to scan for viruses, upload a file to a course or your \'Private files\' repository. For a benign positive virus response test, please investigate the <a href="https://en.wikipedia.org/wiki/EICAR_test_file">EICAR test file</a>.';
 $string['warngeneral'] = 'SAVDI scanner said: {$a}';
 $string['warnprotocol'] = 'SAVDI protocol warning: {$a}';

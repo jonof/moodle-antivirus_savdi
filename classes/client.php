@@ -258,7 +258,7 @@ class client {
      * @return boolean
      */
     public function is_connected() {
-        return $this->socket !== null;
+        return $this->socket !== null && $this->socket !== false;
     }
 
     /**
