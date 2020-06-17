@@ -6,7 +6,7 @@ This plugin adds virus scanner support for the Sophos SAVDI daemon to Moodle 3.2
 
 * Scanner on the same host as the web server, web server files readable by the scanner. Requires 'allowscanfile' option be FILE, DIR, or SUBDIR in the scanner configuration. Connection may be via Unix domain socket or TCP/IP.
 * Scanner on the same host as the web server, web server files *not* readable by the scanner. Requires 'allowscandata' be YES in the SAVDI configuration. Connection may be via Unix domain socket or TCP/IP.
-* Scanner on a different host to the web server. Requires 'allowscandata' be YES in the SAVDI configuration. Connection is via TCP/IP.
+* Scanner on a different host to the web server. Requires 'allowscandata' be YES in the SAVDI configuration. Connection is via TCP/IP, so ensure any relevant network and host firewalls allow communication with the daemon.
 
 See the [Troubleshooting](#troubleshooting) section below for common deployment issues.
 
