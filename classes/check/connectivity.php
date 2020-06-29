@@ -65,9 +65,9 @@ class connectivity extends \core\check\check {
             return new result($errorresult, $e->getMessage());
         }
 
-        // Scanning 1 kilobyte of safe data should always succeed for the
-        // scanner to be much use to anyone.
-        $testdata = str_pad('', 1024, 'antivirus_savdi ');
+        // Scanning 256 kilobytes of safe data should succeed for the scanner
+        // to be even slightly useful to anyone.
+        $testdata = str_pad('', 256 * 1024, 'antivirus_savdi ');
         $scandataresult = null;
         $scanfileresult = null;
 
