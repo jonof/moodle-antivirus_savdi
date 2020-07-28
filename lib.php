@@ -31,6 +31,12 @@ defined('MOODLE_INTERNAL') || die();
  * @return array of core\check\check instances
  */
 function antivirus_savdi_status_checks() {
+    // Don't return any checks if the plugin isn't enabled.
+    $enabledavs = core_plugin_manager::instance()->get_enabled_plugins('antivirus');
+    if (!in_array('savdi', $enabledavs)) {
+        return [];
+    }
+
     return [
         new antivirus_savdi\check\connectivity(),
     ];
