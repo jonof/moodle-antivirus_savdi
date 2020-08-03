@@ -551,8 +551,38 @@ class client {
         if ($this->debugprotocol) {
             debugging('SAVDI < (' . $bytes . ' bytes...)', DEBUG_DEVELOPER);
         }
-        $sent = fwrite($this->socket, $data, $bytes);
+
+        $firstzerowrite = null;
+        $sockettimeout = ini_get('default_socket_timeout'); // Note: can be <0 meaning 'forever'.
+
+        $sent = 0;
+        do {
+            $tosend = min(8192, $bytes - $sent); // 8KB per fwrite call.
+            $part = fwrite($this->socket, substr($data, $sent, $tosend));
+
+            if ($part === false) {
+                debugging('socket write returned error', DEBUG_DEVELOPER);
+                break;
+            } else if ($part === 0) {
+                if ($firstzerowrite === null) {
+                    $firstzerowrite = microtime(true);
+                } else if (microtime(true) - $firstzerowrite >= $sockettimeout) {
+                    debugging('timeout retrying on zero-byte writes', DEBUG_DEVELOPER);
+                    break;
+                }
+                sleep(1);
+                continue;
+            } else if ($part < $tosend) {
+                debugging(sprintf('socket write returned early after %d of %d bytes; resuming',
+                    $part, $tosend), DEBUG_DEVELOPER);
+            }
+
+            $sent += $part;
+            $firstzerowrite = null;
+        } while ($sent < $bytes);
+
         fflush($this->socket);
+
         return $sent === $bytes;
     }
 
@@ -567,8 +597,23 @@ class client {
         if ($this->debugprotocol) {
             debugging('SAVDI < (' . $bytes . ' bytes from stream...)', DEBUG_DEVELOPER);
         }
-        $sent = stream_copy_to_stream($fileh, $this->socket, $bytes, 0);
+
+        $sent = 0;
+        do {
+            $tosend = $bytes - $sent;
+            $part = stream_copy_to_stream($fileh, $this->socket, $tosend);
+            if ($part === false) {
+                debugging('stream copy returned error', DEBUG_DEVELOPER);
+                break;
+            } else if ($part < $tosend) {
+                debugging(sprintf('stream copy returned early after %d of %d bytes; resuming',
+                    $part, $tosend), DEBUG_DEVELOPER);
+            }
+            $sent += $part;
+        } while ($sent < $bytes && !feof($fileh));
+
         fflush($this->socket);
+
         return $sent === $bytes;
     }
 

@@ -123,7 +123,12 @@ if ($client->is_connected()) {
                 $table->data[] = make_result_row('file', $result, $client);
             }
 
-            $result = $client->scandata(file_get_contents($_FILES['testfile']['tmp_name']));
+            if (($fh = fopen($_FILES['testfile']['tmp_name'], 'rb')) !== false) {
+                $result = $client->scandatafileh($fh);
+                fclose($fh);
+            } else {
+                $result = get_string('errorfileopen', 'antivirus_savdi', $_FILES['testfile']['tmp_name']);
+            }
             $table->data[] = make_result_row('data', $result, $client);
         } else {
             if ($_FILES['testfile']['error'] == 0) {
@@ -153,20 +158,24 @@ echo $OUTPUT->footer();
  * Generates a table row object for the test scan outcome display.
  *
  * @param string $type 'file' or 'data'.
- * @param integer $result the result code from the client scan call.
+ * @param integer|string $result the result code from the client scan call, or a literal error string.
  * @param client $client the client object for further interrogation.
  * @return html_table_row
  */
 function make_result_row($type, $result, $client) {
-    $resultrow = new html_table_row([
-        get_string('testclientscan' . $type . 'result', 'antivirus_savdi'),
-        get_string('clientresult' . $result, 'antivirus_savdi')
-    ]);
-    $resultrow->attributes = ['class' => 'table-success'];
+    if (is_string($result)) {
+        $resultstr = $result;
+        $rowclass = 'table-danger';
+    } else {
+        $resultstr = get_string('clientresult' . $result, 'antivirus_savdi');
+        $rowclass = 'table-success';
+    }
 
-    if ($result == client::RESULT_VIRUS) {
+    if (is_string($result)) {
+        return $resultrow;
+    } else if ($result == client::RESULT_VIRUS) {
         $viruslist = $client->get_scan_viruses();
-        $resultrow->cells[1]->text .= html_writer::alist(
+        $resultstr .= html_writer::alist(
             array_map(
                 function ($filename, $virusname) {
                     if ($filename !== '') {
@@ -179,11 +188,17 @@ function make_result_row($type, $result, $client) {
             ['class' => 'list-unstyled']
         );
     } else if (client::is_error_result($result)) {
-        $resultrow->cells[1]->text .= html_writer::div(
+        $resultstr .= html_writer::div(
             get_string('errorgeneral', 'antivirus_savdi', $client->get_scan_message())
         );
-        $resultrow->attributes = ['class' => 'table-danger'];
+        $rowclass = 'table-danger';
     }
+
+    $resultrow = new html_table_row([
+        get_string('testclientscan' . $type . 'result', 'antivirus_savdi'),
+        $resultstr
+    ]);
+    $resultrow->attributes = ['class' => $rowclass];
 
     return $resultrow;
 }
