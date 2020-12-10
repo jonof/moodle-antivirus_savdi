@@ -48,6 +48,9 @@ if ($ADMIN->fulltree) {
             new lang_string('chmodscanfile', 'antivirus_savdi'),
             new lang_string('chmodscanfiledescr', 'antivirus_savdi'),
             1));
+    $settings->add(new admin_setting_configtext('antivirus_savdi/connretry',
+            new lang_string('connretry', 'antivirus_savdi'),
+            new lang_string('connretrydesc', 'antivirus_savdi'), 5, PARAM_INT, 10));
 
     $options = array(
         'donothing' => new lang_string('daemonerrordonothing', 'antivirus_savdi'),

@@ -184,29 +184,47 @@ class client {
      *
      * @param string $type 'unix' or 'tcp'
      * @param string $host path to unix socket, or tcp host:port
+     * @param int $tries the number of connections to attempt before failing.
      * @return void
      * @throws moodle_exception
      */
-    public function connect($type, $host) {
+    public function connect($type, $host, $tries) {
         $this->disconnect();
+        $connected = false;
 
-        if (!$this->open_socket($type . '://' . $host, $errno, $errstr)) {
-            throw new moodle_exception('errorcantopen'.$type.'socket', 'antivirus_savdi', '', "$errstr ($errno)");
-        }
+        $count = 0;
+        while (!$connected) {
 
-        // Expect the server to greet us.
-        if ($this->getmessage() !== "OK SSSP/1.0") {
-            $this->close_socket();
-            throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'bad server greeting');
-        }
-        $this->sendmessage("SSSP/1.0");
-        if (strpos($this->getmessage(), "ACC ") !== 0) {
-            $this->close_socket();
-            throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'bad protocol version handshake');
-        }
+            $connected = true;
+            try {
+                if (!$this->open_socket($type . '://' . $host, $errno, $errstr)) {
+                    throw new moodle_exception('errorcantopen'.$type.'socket', 'antivirus_savdi', '', "$errstr ($errno)");
+                }
 
-        if (!$this->query_server_capabilities()) {
-            throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'problem querying capabilities');
+                // Expect the server to greet us.
+                if ($this->getmessage() !== "OK SSSP/1.0") {
+                    $this->close_socket();
+                    throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'bad server greeting');
+                }
+                $this->sendmessage("SSSP/1.0");
+                if (strpos($this->getmessage(), "ACC ") !== 0) {
+                    $this->close_socket();
+                    throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'bad protocol version handshake');
+                }
+
+                if (!$this->query_server_capabilities()) {
+                    throw new moodle_exception('errorprotocol', 'antivirus_savdi', '', 'problem querying capabilities');
+                }
+            } catch (moodle_exception $e) {
+                // If we still have tries left, increment count and redo.
+                if ($count < $tries && $tries > 0) {
+                    $count++;
+                    $connected = false;
+                } else {
+                    // Reached max tries with an exception. Rethrow it.
+                    throw $e;
+                }
+            }
         }
     }
 

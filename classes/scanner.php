@@ -74,8 +74,9 @@ class scanner extends \core\antivirus\scanner {
         if (!$this->client) {
             $conntype = $this->get_config('conntype');
             $connhost = $this->get_config('conn' . $conntype);
+            $conntries = (int) $this->get_config('connretry');
             $client = new client();
-            $client->connect($conntype, $connhost);
+            $client->connect($conntype, $connhost, $conntries);
             $this->client = $client;
         }
         return $this->client;
