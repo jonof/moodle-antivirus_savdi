@@ -95,37 +95,43 @@ class connectivity extends \core\check\check {
         }
 
         // Check scanfile using a test file written where PHP would write uploaded file contents.
-        $uploaddir = ini_get('upload_tmp_dir') ?? sys_get_temp_dir();
-        $tmptestfile = tempnam($uploaddir, 'antivirus_savdi');
-        if ($tmptestfile && file_put_contents($tmptestfile, $testdata) !== strlen($testdata)) {
-            debugging(sprintf('temporary test file %s could not be written', $tmptestfile), DEBUG_DEVELOPER);
-            unlink($tmptestfile);
-            $tmptestfile = null;
-        }
-        if ($tmptestfile) {
-            try {
-                $scanfileresult = $client->scanfile($tmptestfile);
-                switch ($scanfileresult) {
-                    case client::RESULT_OK:
-                    case client::RESULT_ERROR_NOTSUPPORTED:
-                        break;
-                    case client::RESULT_VIRUS:
-                        return new result($errorresult,
-                            get_string('checkconnectivityfalsepositive', 'antivirus_savdi')
-                        );
-                    default:
-                        return new result($errorresult,
-                            get_string('checkconnectivityscanfileerror', 'antivirus_savdi',
-                                $client->get_scan_message())
-                        );
-                }
-            } catch (\moodle_exception $e) {
-                return new result($errorresult,
-                    get_string('checkconnectivityscanfileerror', 'antivirus_savdi', $e->getMessage())
-                );
-            } finally {
+        if (!get_config('antivirus_savdi', 'scannerisremote')) {
+            // Only try scanfile if scanner is not remote.
+            $uploaddir = ini_get('upload_tmp_dir') ?? sys_get_temp_dir();
+            $tmptestfile = tempnam($uploaddir, 'antivirus_savdi');
+            if ($tmptestfile && file_put_contents($tmptestfile, $testdata) !== strlen($testdata)) {
+                debugging(sprintf('temporary test file %s could not be written', $tmptestfile), DEBUG_DEVELOPER);
                 unlink($tmptestfile);
+                $tmptestfile = null;
             }
+            if ($tmptestfile) {
+                try {
+                    $scanfileresult = $client->scanfile($tmptestfile);
+                    switch ($scanfileresult) {
+                        case client::RESULT_OK:
+                        case client::RESULT_ERROR_NOTSUPPORTED:
+                            break;
+                        case client::RESULT_VIRUS:
+                            return new result($errorresult,
+                                get_string('checkconnectivityfalsepositive', 'antivirus_savdi')
+                            );
+                        default:
+                            return new result($errorresult,
+                                get_string('checkconnectivityscanfileerror', 'antivirus_savdi',
+                                    $client->get_scan_message())
+                            );
+                    }
+                } catch (\moodle_exception $e) {
+                    return new result($errorresult,
+                        get_string('checkconnectivityscanfileerror', 'antivirus_savdi', $e->getMessage())
+                    );
+                } finally {
+                    unlink($tmptestfile);
+                }
+            }
+        } else {
+            // Scanfile ends up the same as scandata.
+            $scanfileresult = $scandataresult;
         }
 
         // Interpret the results. Only OK and NOTSUPPORTED will have made it past the earlier tests.

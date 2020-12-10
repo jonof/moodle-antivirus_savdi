@@ -116,8 +116,11 @@ if ($client->is_connected()) {
                 s($_FILES['testfile']['tmp_name'])
             ];
 
-            $result = $client->scanfile($_FILES['testfile']['tmp_name']);
-            $table->data[] = make_result_row('file', $result, $client);
+            // If scanner is remote, it all routes through scandata.
+            if (!get_config('antivirus_savdi', 'scannerisremote')) {
+                $result = $client->scanfile($_FILES['testfile']['tmp_name']);
+                $table->data[] = make_result_row('file', $result, $client);
+            }
 
             $result = $client->scandata(file_get_contents($_FILES['testfile']['tmp_name']));
             $table->data[] = make_result_row('data', $result, $client);
