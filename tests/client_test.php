@@ -118,4 +118,20 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $this->assertEquals(test_client::SAVI_ERROR_SCANTIMEOUT, $client->get_scan_code());
         $this->assertDebuggingCalled();
     }
+
+    public function test_connect_retries_exceeded() {
+        $client = new test_client();
+        $client->opensocketfails = 2;
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage('antivirus_savdi/errorcantopenfilesocket');
+        $client->connect('file', __DIR__ . '/fixtures/connect-disconnect.txt', 1);
+    }
+
+    public function test_connect_retries_sufficient() {
+        $client = new test_client();
+        $client->opensocketfails = 1;
+
+        $client->connect('file', __DIR__ . '/fixtures/connect-disconnect.txt', 1);
+    }
 }

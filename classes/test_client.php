@@ -49,6 +49,12 @@ class test_client extends \antivirus_savdi\client {
     private $scriptfh;
 
     /**
+     * The number of times to pretend to fail an open_socket() call.
+     * @var integer
+     */
+    public $opensocketfails = 0;
+
+    /**
      * Constructor.
      */
     public function __construct() {
@@ -63,6 +69,14 @@ class test_client extends \antivirus_savdi\client {
      * @param string $errstr
      */
     protected function open_socket($sockpath, &$errno, &$errstr) {
+        if ($this->opensocketfails > 0) {
+            $this->opensocketfails--;
+            $errno = 50;    // ENETDOWN
+            $errstr = 'Network is down';
+            $this->socket = false;
+            return false;
+        }
+
         // Use an in-memory stream to simulate the read buffer.
         $this->socket = fopen('php://memory', 'w+b');
         if (!$this->socket) {

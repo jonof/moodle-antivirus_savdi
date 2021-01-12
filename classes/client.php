@@ -188,13 +188,12 @@ class client {
      * @return void
      * @throws moodle_exception
      */
-    public function connect($type, $host, $tries) {
+    public function connect($type, $host, $tries = 0) {
         $this->disconnect();
-        $connected = false;
 
+        $connected = false;
         $count = 0;
         while (!$connected) {
-
             $connected = true;
             try {
                 if (!$this->open_socket($type . '://' . $host, $errno, $errstr)) {

@@ -47,7 +47,8 @@ $table->data[] = [
 ];
 
 try {
-    $client->connect($config->conntype, $config->{'conn' . $config->conntype});
+    $client->connect($config->conntype, $config->{'conn' . $config->conntype},
+        (int) $config->connretry);
 
     // Connection good.
     $labelcell = get_string('testclientresult', 'antivirus_savdi');
