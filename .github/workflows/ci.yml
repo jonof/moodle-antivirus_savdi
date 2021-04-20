@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   citest:
-    name: CI test
+    name: CI
     runs-on: ubuntu-18.04
 
     strategy:
@@ -13,6 +13,9 @@ jobs:
         include:
           - php: '7.4'
             moodle-branch: 'master'
+            node-version: '14.15.0'
+          - php: '7.3'
+            moodle-branch: 'MOODLE_311_STABLE'
             node-version: '14.15.0'
           - php: '7.3'
             moodle-branch: 'MOODLE_310_STABLE'
