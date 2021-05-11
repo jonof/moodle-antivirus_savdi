@@ -26,15 +26,6 @@ jobs:
           - php: '7.2'
             moodle-branch: 'MOODLE_38_STABLE'
             node-version: '14.15.0'
-          - php: '7.2'
-            moodle-branch: 'MOODLE_37_STABLE'
-            node-version: '14.15.0'
-          - php: '7.0'
-            moodle-branch: 'MOODLE_36_STABLE'
-            node-version: '8.16.1'
-          - php: '7.0'
-            moodle-branch: 'MOODLE_35_STABLE'
-            node-version: '14.15.0'
 
     services:
       postgres:
