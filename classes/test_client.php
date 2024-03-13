@@ -25,8 +25,6 @@
 
 namespace antivirus_savdi;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Sophos SAVDI antivirus protocol test client.
  *
@@ -71,7 +69,7 @@ class test_client extends \antivirus_savdi\client {
     protected function open_socket($sockpath, &$errno, &$errstr) {
         if ($this->opensocketfails > 0) {
             $this->opensocketfails--;
-            $errno = 50;    // ENETDOWN
+            $errno = 50;    // ENETDOWN.
             $errstr = 'Network is down';
             $this->socket = false;
             return false;

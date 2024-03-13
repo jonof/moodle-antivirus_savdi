@@ -24,8 +24,6 @@
  */
 namespace antivirus_savdi;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Mockup class to use test_client instead of a regular client.
  *

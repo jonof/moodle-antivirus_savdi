@@ -23,8 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace antivirus_savdi\tests;
-defined('MOODLE_INTERNAL') || die();
+namespace antivirus_savdi;
 
 use antivirus_savdi\test_scanner;
 
@@ -34,9 +33,10 @@ use antivirus_savdi\test_scanner;
  * @package    antivirus_savdi
  * @copyright  2020 Catalyst IT Australia
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \antivirus_savdi\scanner
  */
-class antivirus_savdi_scanner_testcase extends \advanced_testcase {
-    public function test_is_configured() {
+final class scanner_test extends \advanced_testcase {
+    public function test_is_configured(): void {
         $this->resetAfterTest(true);
 
         // Test when no config selected.
@@ -71,7 +71,7 @@ class antivirus_savdi_scanner_testcase extends \advanced_testcase {
         $this->assertTrue($scanner->is_configured());
     }
 
-    public function test_scan_file() {
+    public function test_scan_file(): void {
         $this->resetAfterTest(true);
         global $SESSION;
 
@@ -114,7 +114,7 @@ class antivirus_savdi_scanner_testcase extends \advanced_testcase {
         $this->assertEquals($scanner::SCAN_RESULT_FOUND, $scanner->scan_file('/path', '/path'));
     }
 
-    public function test_scan_data() {
+    public function test_scan_data(): void {
         $this->resetAfterTest(true);
         global $SESSION;
 

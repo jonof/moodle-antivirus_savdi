@@ -23,8 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace antivirus_savdi\tests;
-defined('MOODLE_INTERNAL') || die();
+namespace antivirus_savdi;
 
 use antivirus_savdi\test_client;
 
@@ -34,29 +33,30 @@ use antivirus_savdi\test_client;
  * @package    antivirus_savdi
  * @copyright  2020 The University of Southern Queensland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \antivirus_savdi\client
  */
-class antivirus_savdi_client_testcase extends \advanced_testcase {
-    public function test_connect_disconnect() {
+final class client_test extends \advanced_testcase {
+    public function test_connect_disconnect(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/connect-disconnect.txt');
         $client->disconnect();
     }
 
-    public function test_scandata_without_support() {
+    public function test_scandata_without_support(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scandata-without-support.txt');
 
         $this->assertEquals(test_client::RESULT_ERROR_NOTSUPPORTED, $client->scandata('data'));
     }
 
-    public function test_scandata_too_large() {
+    public function test_scandata_too_large(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scandata-too-large.txt');
 
         $this->assertEquals(test_client::RESULT_ERROR_TOOLARGE, $client->scandata('data'));
     }
 
-    public function test_scandata_clean() {
+    public function test_scandata_clean(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scandata-clean.txt');
 
@@ -65,7 +65,7 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $this->assertEquals(test_client::SAVI_OK, $client->get_scan_code());
     }
 
-    public function test_scandata_infected() {
+    public function test_scandata_infected(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scandata-infected.txt');
 
@@ -75,7 +75,7 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $this->assertDebuggingCalled();
     }
 
-    public function test_scandata_timeout() {
+    public function test_scandata_timeout(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scandata-timeout.txt');
 
@@ -84,14 +84,14 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $this->assertDebuggingCalled();
     }
 
-    public function test_scanfile_without_support() {
+    public function test_scanfile_without_support(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scanfile-without-support.txt');
 
         $this->assertEquals(test_client::RESULT_ERROR_NOTSUPPORTED, $client->scanfile('/path'));
     }
 
-    public function test_scanfile_clean() {
+    public function test_scanfile_clean(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scanfile-clean.txt');
 
@@ -100,7 +100,7 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $this->assertEquals(test_client::SAVI_OK, $client->get_scan_code());
     }
 
-    public function test_scanfile_infected() {
+    public function test_scanfile_infected(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scanfile-infected.txt');
 
@@ -110,7 +110,7 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $this->assertDebuggingCalled();
     }
 
-    public function test_scanfile_timeout() {
+    public function test_scanfile_timeout(): void {
         $client = new test_client();
         $client->connect('file', __DIR__ . '/fixtures/scanfile-timeout.txt');
 
@@ -119,7 +119,7 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $this->assertDebuggingCalled();
     }
 
-    public function test_connect_retries_exceeded() {
+    public function test_connect_retries_exceeded(): void {
         $client = new test_client();
         $client->opensocketfails = 2;
 
@@ -128,7 +128,7 @@ class antivirus_savdi_client_testcase extends \advanced_testcase {
         $client->connect('file', __DIR__ . '/fixtures/connect-disconnect.txt', 1);
     }
 
-    public function test_connect_retries_sufficient() {
+    public function test_connect_retries_sufficient(): void {
         $client = new test_client();
         $client->opensocketfails = 1;
 

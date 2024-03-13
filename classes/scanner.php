@@ -25,8 +25,6 @@
 
 namespace antivirus_savdi;
 
-defined('MOODLE_INTERNAL') || die();
-
 use moodle_exception;
 
 /**

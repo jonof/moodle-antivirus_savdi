@@ -25,8 +25,6 @@
 
 namespace antivirus_savdi\check;
 
-defined('MOODLE_INTERNAL') || die();
-
 use core\check\result;
 use antivirus_savdi\scanner;
 use antivirus_savdi\client;

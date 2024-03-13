@@ -1,8 +1,8 @@
-# Sophos SAVDI antivirus plugin for Moodle 3.5+
+# Sophos SAVDI antivirus plugin for Moodle 4.1+
 
 Copyright © 2017–2020 The University of Southern Queensland (https://www.usq.edu.au)
 
-This plugin adds virus scanner support for the Sophos SAVDI daemon to Moodle 3.5 and newer. These scanner (SAVDI daemon) and web server combinations are supported:
+This plugin adds virus scanner support for the Sophos SAVDI daemon to Moodle 4.1 and newer. These scanner (SAVDI daemon) and web server combinations are supported:
 
 * Scanner on the same host as the web server, web server files readable by the scanner. Requires 'allowscanfile' option be FILE, DIR, or SUBDIR in the scanner configuration. Connection may be via Unix domain socket or TCP/IP.
 * Scanner on the same host as the web server, web server files *not* readable by the scanner. Requires 'allowscandata' be YES in the SAVDI configuration. Connection may be via Unix domain socket or TCP/IP.

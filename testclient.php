@@ -114,7 +114,7 @@ if ($client->is_connected()) {
         if ($_FILES['testfile']['error'] == 0 && is_uploaded_file($_FILES['testfile']['tmp_name'])) {
             $table->data[] = [
                 get_string('testclientscantestpath', 'antivirus_savdi'),
-                s($_FILES['testfile']['tmp_name'])
+                s($_FILES['testfile']['tmp_name']),
             ];
 
             // If scanner is remote, it all routes through scandata.
@@ -140,7 +140,7 @@ if ($client->is_connected()) {
             }
             $errorrow = new html_table_row([
                 get_string('testclientscantestpath', 'antivirus_savdi'),
-                $errstr
+                $errstr,
             ]);
             $errorrow->attributes = ['class' => 'table-danger'];
             $table->data[] = $errorrow;
@@ -161,6 +161,7 @@ echo $OUTPUT->footer();
  * @param integer|string $result the result code from the client scan call, or a literal error string.
  * @param client $client the client object for further interrogation.
  * @return html_table_row
+ * @package antivirus_savdi
  */
 function make_result_row($type, $result, $client) {
     if (is_string($result)) {
@@ -196,7 +197,7 @@ function make_result_row($type, $result, $client) {
 
     $resultrow = new html_table_row([
         get_string('testclientscan' . $type . 'result', 'antivirus_savdi'),
-        $resultstr
+        $resultstr,
     ]);
     $resultrow->attributes = ['class' => $rowclass];
 

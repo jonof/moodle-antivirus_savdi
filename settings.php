@@ -26,10 +26,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
-    $options = array(
+    $options = [
         'unix' => new lang_string('conntypeunix', 'antivirus_savdi'),
         'tcp'  => new lang_string('conntypetcp', 'antivirus_savdi'),
-    );
+    ];
     $settings->add(new admin_setting_configselect('antivirus_savdi/conntype',
             new lang_string('conntype', 'antivirus_savdi'),
             new lang_string('conntypedescr', 'antivirus_savdi'), 'unix', $options));
@@ -52,10 +52,10 @@ if ($ADMIN->fulltree) {
             new lang_string('connretry', 'antivirus_savdi'),
             new lang_string('connretrydesc', 'antivirus_savdi'), 5, PARAM_INT, 10));
 
-    $options = array(
+    $options = [
         'donothing' => new lang_string('daemonerrordonothing', 'antivirus_savdi'),
         'actlikevirus' => new lang_string('daemonerroractlikevirus', 'antivirus_savdi'),
-    );
+    ];
     $settings->add(new admin_setting_configselect('antivirus_savdi/ondaemonerror',
             new lang_string('ondaemonerror', 'antivirus_savdi'),
             new lang_string('ondaemonerrordescr', 'antivirus_savdi'), 'donothing', $options));
