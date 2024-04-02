@@ -45,7 +45,7 @@ class client {
 
     /**
      * Whether to emit the SAVDI conversation as debug output.
-     * @var boolean
+     * @var bool
      */
     public $debugprotocol = false;
 
@@ -69,62 +69,62 @@ class client {
 
     /**
      * A good scan result.
-     * @var integer
+     * @var int
      */
     const RESULT_OK = 0;
 
     /**
      * A virus was found result.
-     * @var integer
+     * @var int
      */
     const RESULT_VIRUS = 1;
 
     /**
      * A scan failure result.
-     * @var integer
+     * @var int
      */
     const RESULT_ERROR = 2;
 
     /**
      * A request not supported failure result.
-     * @var integer
+     * @var int
      */
     const RESULT_ERROR_NOTSUPPORTED = 3;
 
     /**
      * A data too large failure result.
-     * @var integer
+     * @var int
      */
     const RESULT_ERROR_TOOLARGE = 4;
 
 
     /**
      * Whether the server supports the SCANFILE request.
-     * @var boolean
+     * @var bool
      */
     private $hasscanfile = false;
 
     /**
      * Whether the server supports the SCANDIR request.
-     * @var boolean
+     * @var bool
      */
     private $hasscandir  = false;
 
     /**
      * Whether the server supports the SCANDIRR request.
-     * @var boolean
+     * @var bool
      */
     private $hasscandirr = false;
 
     /**
      * Whether the server supports the SCANDATA request.
-     * @var boolean
+     * @var bool
      */
     private $hasscandata = false;
 
     /**
      * The maximum size of data accepted by SCANDATA. 0 means unlimited.
-     * @var integer
+     * @var int
      */
     private $maxscandata = 0;
 

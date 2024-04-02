@@ -48,7 +48,7 @@ class test_client extends \antivirus_savdi\client {
 
     /**
      * The number of times to pretend to fail an open_socket() call.
-     * @var integer
+     * @var int
      */
     public $opensocketfails = 0;
 
