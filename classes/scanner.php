@@ -177,8 +177,10 @@ class scanner extends \core\antivirus\scanner {
             return $onerrorreturn;
         }
 
-        if ($scanresult === client::RESULT_ERROR_TOOLARGE ||
-            $scanresult === client::RESULT_ERROR_NOTSUPPORTED) {
+        if (
+            $scanresult === client::RESULT_ERROR_TOOLARGE ||
+            $scanresult === client::RESULT_ERROR_NOTSUPPORTED
+        ) {
             // Punt the request to the default implementation which spools to disk.
             return parent::scan_data($data);
         } else if ($scanresult === client::RESULT_VIRUS) {

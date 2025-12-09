@@ -23,8 +23,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require(__DIR__.'/../../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
+require(__DIR__ . '/../../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
 
 use antivirus_savdi\client;
 
@@ -47,8 +47,11 @@ $table->data[] = [
 ];
 
 try {
-    $client->connect($config->conntype, $config->{'conn' . $config->conntype},
-        (int) $config->connretry);
+    $client->connect(
+        $config->conntype,
+        $config->{'conn' . $config->conntype},
+        (int) $config->connretry
+    );
 
     // Connection good.
     $labelcell = get_string('testclientresult', 'antivirus_savdi');
@@ -83,7 +86,6 @@ try {
             s($capvalue),
         ];
     }
-
 } catch (moodle_exception $e) {
     // Connection error.
     $labelcell = get_string('testclientresult', 'antivirus_savdi');
@@ -132,11 +134,17 @@ if ($client->is_connected()) {
             $table->data[] = make_result_row('data', $result, $client);
         } else {
             if ($_FILES['testfile']['error'] == 0) {
-                $errstr = get_string('testclientscanuploaderrornotrecognised',
-                    'antivirus_savdi', $_FILES['testfile']['tmp_name']);
+                $errstr = get_string(
+                    'testclientscanuploaderrornotrecognised',
+                    'antivirus_savdi',
+                    $_FILES['testfile']['tmp_name']
+                );
             } else {
-                $errstr = get_string('testclientscanuploaderror',
-                    'antivirus_savdi', file_get_upload_error($_FILES['testfile']['error']));
+                $errstr = get_string(
+                    'testclientscanuploaderror',
+                    'antivirus_savdi',
+                    file_get_upload_error($_FILES['testfile']['error'])
+                );
             }
             $errorrow = new html_table_row([
                 get_string('testclientscantestpath', 'antivirus_savdi'),
@@ -184,7 +192,8 @@ function make_result_row($type, $result, $client) {
                     }
                     return s($virusname);
                 },
-                array_keys($viruslist), $viruslist
+                array_keys($viruslist),
+                $viruslist
             ),
             ['class' => 'list-unstyled']
         );

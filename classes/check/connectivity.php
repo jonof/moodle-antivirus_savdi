@@ -44,7 +44,8 @@ class connectivity extends \core\check\check {
     public function get_result(): result {
         $scanner = new scanner();
         if (!$scanner->is_configured()) {
-            return new result(result::NA,
+            return new result(
+                result::NA,
                 get_string('checkconnectivitynoconfig', 'antivirus_savdi')
             );
         }
@@ -77,17 +78,23 @@ class connectivity extends \core\check\check {
                 case client::RESULT_ERROR_NOTSUPPORTED:
                     break;
                 case client::RESULT_VIRUS:
-                    return new result($errorresult,
+                    return new result(
+                        $errorresult,
                         get_string('checkconnectivityfalsepositive', 'antivirus_savdi')
                     );
                 default:
-                    return new result($errorresult,
-                        get_string('checkconnectivityscandataerror', 'antivirus_savdi',
-                            $client->get_scan_message())
+                    return new result(
+                        $errorresult,
+                        get_string(
+                            'checkconnectivityscandataerror',
+                            'antivirus_savdi',
+                            $client->get_scan_message()
+                        )
                     );
             }
         } catch (\moodle_exception $e) {
-            return new result($errorresult,
+            return new result(
+                $errorresult,
                 get_string('checkconnectivityscandataerror', 'antivirus_savdi', $e->getMessage())
             );
         }
@@ -110,17 +117,23 @@ class connectivity extends \core\check\check {
                         case client::RESULT_ERROR_NOTSUPPORTED:
                             break;
                         case client::RESULT_VIRUS:
-                            return new result($errorresult,
+                            return new result(
+                                $errorresult,
                                 get_string('checkconnectivityfalsepositive', 'antivirus_savdi')
                             );
                         default:
-                            return new result($errorresult,
-                                get_string('checkconnectivityscanfileerror', 'antivirus_savdi',
-                                    $client->get_scan_message())
+                            return new result(
+                                $errorresult,
+                                get_string(
+                                    'checkconnectivityscanfileerror',
+                                    'antivirus_savdi',
+                                    $client->get_scan_message()
+                                )
                             );
                     }
                 } catch (\moodle_exception $e) {
-                    return new result($errorresult,
+                    return new result(
+                        $errorresult,
                         get_string('checkconnectivityscanfileerror', 'antivirus_savdi', $e->getMessage())
                     );
                 } finally {
@@ -133,8 +146,10 @@ class connectivity extends \core\check\check {
         }
 
         // Interpret the results. Only OK and NOTSUPPORTED will have made it past the earlier tests.
-        if ($scandataresult === client::RESULT_ERROR_NOTSUPPORTED &&
-                $scanfileresult === client::RESULT_ERROR_NOTSUPPORTED) {
+        if (
+            $scandataresult === client::RESULT_ERROR_NOTSUPPORTED &&
+                $scanfileresult === client::RESULT_ERROR_NOTSUPPORTED
+        ) {
             return new result($errorresult, get_string('checkconnectivitynomethods', 'antivirus_savdi'));
         } else if ($scanfileresult === null) {
             // A potentially working though not fully exercised setup because file scanning was skipped.

@@ -82,7 +82,7 @@ class test_client extends \antivirus_savdi\client {
         }
 
         // Open the SSSP conversation script.
-        list($type, $file) = explode('://', $sockpath, 2);
+        [$type, $file] = explode('://', $sockpath, 2);
         if ($type !== 'file') {
             throw new \coding_exception('sockpath is not a file:// url');
         } else {

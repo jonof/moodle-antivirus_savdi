@@ -30,45 +30,78 @@ if ($ADMIN->fulltree) {
         'unix' => new lang_string('conntypeunix', 'antivirus_savdi'),
         'tcp'  => new lang_string('conntypetcp', 'antivirus_savdi'),
     ];
-    $settings->add(new admin_setting_configselect('antivirus_savdi/conntype',
-            new lang_string('conntype', 'antivirus_savdi'),
-            new lang_string('conntypedescr', 'antivirus_savdi'), 'unix', $options));
+    $settings->add(new admin_setting_configselect(
+        'antivirus_savdi/conntype',
+        new lang_string('conntype', 'antivirus_savdi'),
+        new lang_string('conntypedescr', 'antivirus_savdi'),
+        'unix',
+        $options
+    ));
 
-    $settings->add(new admin_setting_configtext('antivirus_savdi/conntcp',
-            new lang_string('conntcp', 'antivirus_savdi'),
-            null, 'localhost:4010', PARAM_RAW_TRIMMED));
-    $settings->add(new admin_setting_configtext('antivirus_savdi/connunix',
-            new lang_string('connunix', 'antivirus_savdi'),
-            null, '/var/run/savdi.sock', PARAM_RAW_TRIMMED));
-    $settings->add(new admin_setting_configcheckbox('antivirus_savdi/scannerisremote',
-            new lang_string('scannerisremote', 'antivirus_savdi'),
-            new lang_string('scannerisremotedescr', 'antivirus_savdi'),
-            0));
-    $settings->add(new admin_setting_configcheckbox('antivirus_savdi/chmodscanfile',
-            new lang_string('chmodscanfile', 'antivirus_savdi'),
-            new lang_string('chmodscanfiledescr', 'antivirus_savdi'),
-            1));
-    $settings->add(new admin_setting_configtext('antivirus_savdi/connretry',
-            new lang_string('connretry', 'antivirus_savdi'),
-            new lang_string('connretrydesc', 'antivirus_savdi'), 5, PARAM_INT, 10));
+    $settings->add(new admin_setting_configtext(
+        'antivirus_savdi/conntcp',
+        new lang_string('conntcp', 'antivirus_savdi'),
+        null,
+        'localhost:4010',
+        PARAM_RAW_TRIMMED
+    ));
+    $settings->add(new admin_setting_configtext(
+        'antivirus_savdi/connunix',
+        new lang_string('connunix', 'antivirus_savdi'),
+        null,
+        '/var/run/savdi.sock',
+        PARAM_RAW_TRIMMED
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'antivirus_savdi/scannerisremote',
+        new lang_string('scannerisremote', 'antivirus_savdi'),
+        new lang_string('scannerisremotedescr', 'antivirus_savdi'),
+        0
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'antivirus_savdi/chmodscanfile',
+        new lang_string('chmodscanfile', 'antivirus_savdi'),
+        new lang_string('chmodscanfiledescr', 'antivirus_savdi'),
+        1
+    ));
+    $settings->add(new admin_setting_configtext(
+        'antivirus_savdi/connretry',
+        new lang_string('connretry', 'antivirus_savdi'),
+        new lang_string('connretrydesc', 'antivirus_savdi'),
+        5,
+        PARAM_INT,
+        10
+    ));
 
     $options = [
         'donothing' => new lang_string('daemonerrordonothing', 'antivirus_savdi'),
         'actlikevirus' => new lang_string('daemonerroractlikevirus', 'antivirus_savdi'),
     ];
-    $settings->add(new admin_setting_configselect('antivirus_savdi/ondaemonerror',
-            new lang_string('ondaemonerror', 'antivirus_savdi'),
-            new lang_string('ondaemonerrordescr', 'antivirus_savdi'), 'donothing', $options));
+    $settings->add(new admin_setting_configselect(
+        'antivirus_savdi/ondaemonerror',
+        new lang_string('ondaemonerror', 'antivirus_savdi'),
+        new lang_string('ondaemonerrordescr', 'antivirus_savdi'),
+        'donothing',
+        $options
+    ));
 
-    $settings->add(new admin_setting_heading('antivirus_savdi_testheading',
-            new lang_string('testclient', 'antivirus_savdi'),
-            new lang_string('testclient_info', 'antivirus_savdi',
-                (new moodle_url('/lib/antivirus/savdi/testclient.php'))->out())));
+    $settings->add(new admin_setting_heading(
+        'antivirus_savdi_testheading',
+        new lang_string('testclient', 'antivirus_savdi'),
+        new lang_string(
+            'testclient_info',
+            'antivirus_savdi',
+            (new moodle_url('/lib/antivirus/savdi/testclient.php'))->out()
+        )
+    ));
 }
 
 if ($hassiteconfig) {
-    $ADMIN->add('antivirussettings', new admin_externalpage('antivirus_savdi_testclient',
-            new lang_string('testclient', 'antivirus_savdi'),
-            new moodle_url('/lib/antivirus/savdi/testclient.php'),
-            'moodle/site:config', true));
+    $ADMIN->add('antivirussettings', new admin_externalpage(
+        'antivirus_savdi_testclient',
+        new lang_string('testclient', 'antivirus_savdi'),
+        new moodle_url('/lib/antivirus/savdi/testclient.php'),
+        'moodle/site:config',
+        true
+    ));
 }

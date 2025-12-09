@@ -195,7 +195,7 @@ class client {
             $connected = true;
             try {
                 if (!$this->open_socket($type . '://' . $host, $errno, $errstr)) {
-                    throw new moodle_exception('errorcantopen'.$type.'socket', 'antivirus_savdi', '', "$errstr ($errno)");
+                    throw new moodle_exception('errorcantopen' . $type . 'socket', 'antivirus_savdi', '', "$errstr ($errno)");
                 }
 
                 // Expect the server to greet us.
@@ -391,7 +391,7 @@ class client {
                 continue;
             }
 
-            list($response, $extra) = explode(' ', $msg, 2);
+            [$response, $extra] = explode(' ', $msg, 2);
             switch ($response) {
                 case 'ACC':     // Daemon accepted the request.
                     break;
@@ -411,14 +411,14 @@ class client {
                     break;
 
                 case 'VIRUS':   // Virus identified.
-                    list ($virus, $filename) = explode(' ', $extra, 2);
+                    [$virus, $filename] = explode(' ', $extra, 2);
                     $filename = urldecode($filename);
                     $this->viruses[$filename] = $virus;
                     debugging('found virus ' . $virus . ' in ' . $filename, DEBUG_NORMAL);
                     break;
 
                 case 'DONE':
-                    list ($result, $code, $codemsg) = explode(' ', $extra, 3);
+                    [$result, $code, $codemsg] = explode(' ', $extra, 3);
                     if ($result === 'OK') {
                         if ($code === self::SAVI_OK) {
                             $scanresult = self::RESULT_OK;      // No virus.
@@ -437,8 +437,11 @@ class client {
 
                 default:
                     if ($this->debugprotocol) {
-                        debugging(get_string('errorprotocol', 'antivirus_savdi',
-                            "wasn't expecting: " . addcslashes($msg, "\0..\37!@\177..\377")), DEBUG_DEVELOPER);
+                        debugging(get_string(
+                            'errorprotocol',
+                            'antivirus_savdi',
+                            "wasn't expecting: " . addcslashes($msg, "\0..\37!@\177..\377")
+                        ), DEBUG_DEVELOPER);
                     }
                     break;
             }
@@ -463,7 +466,7 @@ class client {
                 return true;
             }
 
-            list($response, $extra) = explode(' ', $msg, 2);
+            [$response, $extra] = explode(' ', $msg, 2);
             switch ($response) {
                 case 'ACC':         // Daemon accepted the request.
                     break;
@@ -519,7 +522,7 @@ class client {
         }
         $msg = rtrim($msg, "\r\n");
         if ($this->debugprotocol) {
-            debugging('SAVDI > '.$msg, DEBUG_DEVELOPER);
+            debugging('SAVDI > ' . $msg, DEBUG_DEVELOPER);
         }
         return $msg;
     }
@@ -532,7 +535,7 @@ class client {
      */
     protected function sendmessage($msg) {
         if ($this->debugprotocol) {
-            debugging('SAVDI < '.$msg, DEBUG_DEVELOPER);
+            debugging('SAVDI < ' . $msg, DEBUG_DEVELOPER);
         }
         fwrite($this->socket, $msg . "\r\n");
         fflush($this->socket);
@@ -571,8 +574,11 @@ class client {
                 sleep(1);
                 continue;
             } else if ($part < $tosend) {
-                debugging(sprintf('socket write returned early after %d of %d bytes; resuming',
-                    $part, $tosend), DEBUG_DEVELOPER);
+                debugging(sprintf(
+                    'socket write returned early after %d of %d bytes; resuming',
+                    $part,
+                    $tosend
+                ), DEBUG_DEVELOPER);
             }
 
             $sent += $part;
@@ -604,8 +610,11 @@ class client {
                 debugging('stream copy returned error', DEBUG_DEVELOPER);
                 break;
             } else if ($part < $tosend) {
-                debugging(sprintf('stream copy returned early after %d of %d bytes; resuming',
-                    $part, $tosend), DEBUG_DEVELOPER);
+                debugging(sprintf(
+                    'stream copy returned early after %d of %d bytes; resuming',
+                    $part,
+                    $tosend
+                ), DEBUG_DEVELOPER);
             }
             $sent += $part;
         } while ($sent < $bytes && !feof($fileh));
