@@ -26,5 +26,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2025100700;          // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2022112800;          // Requires this Moodle version.
+$plugin->requires  = 2024100700;          // Requires this Moodle version.
 $plugin->component = 'antivirus_savdi';   // Full name of the plugin (used for diagnostics).
+$plugin->supported = [405, 502];
